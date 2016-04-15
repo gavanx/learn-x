@@ -1,0 +1,14 @@
+rootProject.name = 'dagger-parent'
+include ':dagger-compiler'
+include ':dagger'
+include ':dagger-example-parent:simple'
+include ':dagger-example-parent:android-simple'
+include ':dagger-example-parent:android-activity-graphs'
+include ':dagger-example-parent'
+
+project(':dagger-compiler').projectDir = "$rootDir/compiler" as File
+project(':dagger').projectDir = "$rootDir/core" as File
+project(':dagger-example-parent:simple').projectDir = "$rootDir/examples/simple" as File
+project(':dagger-example-parent:android-simple').projectDir = "$rootDir/examples/android-simple" as File
+project(':dagger-example-parent:android-activity-graphs').projectDir = "$rootDir/examples/android-activity-graphs" as File
+project(':dagger-example-parent').projectDir = "$rootDir/examples" as File

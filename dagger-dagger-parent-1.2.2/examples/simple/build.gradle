@@ -1,0 +1,6 @@
+group = 'com.squareup.dagger.example'
+description = 'Examples: Simple'
+dependencies {
+  compile project(':dagger')
+  compile project(':dagger-compiler')
+}
