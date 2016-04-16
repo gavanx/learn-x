@@ -4,6 +4,7 @@
 .settings
 eclipsebin
 local.properties
+.gradle
 
 bin
 gen
