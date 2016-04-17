@@ -1,0 +1,29 @@
+apply plugin: 'java'
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile project(':core')
+    compile project(':producers')
+    compile group: 'com.google.auto', name: 'auto-common', version:'0.6'
+    compile group: 'com.google.errorprone', name: 'error_prone_annotations', version:'2.0.8'
+    compile group: 'com.google.guava', name: 'guava', version:'19.0'
+    compile group: 'com.google.code.findbugs', name: 'jsr305', version:'3.0.1'
+    compile group: 'com.google.googlejavaformat', name: 'google-java-format', version:'0.1-alpha'
+    compile group: 'com.squareup', name: 'javapoet', version:'1.5.1'
+    testCompile group: 'junit', name: 'junit', version:'4.11'
+    testCompile project(':core')
+    testCompile group: 'com.google.testing.compile', name: 'compile-testing', version:'0.9'
+    testCompile group: 'com.google.guava', name: 'guava-testlib', version:'19.0'
+    testCompile group: 'org.mockito', name: 'mockito-core', version:'1.9.5'
+    testCompile group: 'com.google.truth', name: 'truth', version:'0.28'
+    compile(group: 'com.google.auto.service', name: 'auto-service', version:'1.0-rc2') {
+        /* This dependency was originally in the Maven provided scope, but the project was not of type war.
+        This behavior is not yet supported by Gradle, so this dependency has been converted to a compile dependency.
+        Please review and delete this closure when resolved. */
+    }
+    compile(group: 'com.google.auto.value', name: 'auto-value', version:'1.1') {
+        /* This dependency was originally in the Maven provided scope, but the project was not of type war.
+        This behavior is not yet supported by Gradle, so this dependency has been converted to a compile dependency.
+        Please review and delete this closure when resolved. */
+    }
+}

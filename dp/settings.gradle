@@ -1,1 +1,1 @@
-include ':core', ':compiler', ':simple', ':simple2', ':simple3', ':ss'
+include ':core', ':compiler', ':simple', ':simple2', ':simple3', ':ss', ':ss2'
