@@ -15,103 +15,117 @@
  */
 package dagger;
 
-import dagger.internal.TestingLoader;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import java.util.Set;
 
+import dagger.internal.TestingLoader;
+
 import static org.junit.Assert.fail;
 
 @RunWith(JUnit4.class)
 public class UnusedProviderTest {
 
-  @Test public void unusedProvidesMethod_whenModuleLibrary_passes() throws Exception {
-    class EntryPoint {
-    }
-    class BagOfMoney {
-    }
-    @Module(injects = EntryPoint.class, library = true) class TestModule {
-      @Provides BagOfMoney providesMoney() {
-        return new BagOfMoney();
-      }
+    @Test
+    public void unusedProvidesMethod_whenModuleLibrary_passes() throws Exception {
+        class EntryPoint {
+        }
+        class BagOfMoney {
+        }
+        @Module(injects = EntryPoint.class, library = true)
+        class TestModule {
+            @Provides
+            BagOfMoney providesMoney() {
+                return new BagOfMoney();
+            }
+        }
+
+        ObjectGraph graph = ObjectGraph.createWith(new TestingLoader(), new TestModule());
+        graph.validate();
     }
 
-    ObjectGraph graph = ObjectGraph.createWith(new TestingLoader(), new TestModule());
-    graph.validate();
-  }
+    @Test
+    public void unusedProviderMethod_whenNotLibraryModule_fails() throws Exception {
+        class EntryPoint {
+        }
+        class BagOfMoney {
+        }
 
-  @Test public void unusedProviderMethod_whenNotLibraryModule_fails() throws Exception {
-    class EntryPoint {
-    }
-    class BagOfMoney {
-    }
+        @Module(injects = EntryPoint.class)
+        class TestModule {
+            @Provides
+            BagOfMoney providesMoney() {
+                return new BagOfMoney();
+            }
+        }
 
-    @Module(injects = EntryPoint.class) class TestModule {
-      @Provides BagOfMoney providesMoney() {
-        return new BagOfMoney();
-      }
-    }
-
-    try {
-      ObjectGraph graph = ObjectGraph.createWith(new TestingLoader(), new TestModule());
-      graph.validate();
-      fail("Validation should have exploded!");
-    } catch (IllegalStateException expected) {
-    }
-  }
-
-  @Test public void whenLibraryModulePlussedToNecessaryModule_shouldNotFailOnUnusedLibraryModule()
-      throws Exception {
-    class EntryPoint {
-    }
-    class BagOfMoney {
+        try {
+            ObjectGraph graph = ObjectGraph.createWith(new TestingLoader(), new TestModule());
+            graph.validate();
+            fail("Validation should have exploded!");
+        } catch (IllegalStateException expected) {
+        }
     }
 
-    @Module(injects = EntryPoint.class, library = true) class ExampleLibraryModule {
-      @Provides BagOfMoney providesMoney() {
-        return new BagOfMoney();
-      }
+    @Test
+    public void whenLibraryModulePlussedToNecessaryModule_shouldNotFailOnUnusedLibraryModule() throws Exception {
+        class EntryPoint {
+        }
+        class BagOfMoney {
+        }
+
+        @Module(injects = EntryPoint.class, library = true)
+        class ExampleLibraryModule {
+            @Provides
+            BagOfMoney providesMoney() {
+                return new BagOfMoney();
+            }
+        }
+
+        @Module(injects = EntryPoint.class)
+        class TestModule {
+        }
+
+        ObjectGraph graph = ObjectGraph.createWith(new TestingLoader(), new TestModule());
+        graph = graph.plus(new ExampleLibraryModule());
+        graph.validate();
     }
 
-    @Module(injects = EntryPoint.class) class TestModule {
+    @Test
+    public void unusedSetBinding() throws Exception {
+        @Module
+        class TestModule {
+            @Provides(type = Provides.Type.SET)
+            String provideA() {
+                throw new AssertionError();
+            }
+        }
+
+        ObjectGraph graph = ObjectGraph.createWith(new TestingLoader(), new TestModule());
+        try {
+            graph.validate();
+            fail();
+        } catch (IllegalStateException expected) {
+        }
     }
 
-    ObjectGraph graph = ObjectGraph.createWith(new TestingLoader(), new TestModule());
-    graph = graph.plus(new ExampleLibraryModule());
-    graph.validate();
-  }
+    @Test
+    public void unusedSetValuesBinding() throws Exception {
+        @Module
+        class TestModule {
+            @Provides(type = Provides.Type.SET_VALUES)
+            Set<String> provideA() {
+                throw new AssertionError();
+            }
+        }
 
-  @Test public void unusedSetBinding() throws Exception {
-    @Module
-    class TestModule {
-      @Provides(type = Provides.Type.SET) String provideA() {
-        throw new AssertionError();
-      }
+        ObjectGraph graph = ObjectGraph.createWith(new TestingLoader(), new TestModule());
+        try {
+            graph.validate();
+            fail();
+        } catch (IllegalStateException expected) {
+        }
     }
-
-    ObjectGraph graph = ObjectGraph.createWith(new TestingLoader(), new TestModule());
-    try {
-      graph.validate();
-      fail();
-    } catch (IllegalStateException expected) {
-    }
-  }
-
-  @Test public void unusedSetValuesBinding() throws Exception {
-    @Module
-    class TestModule {
-      @Provides(type = Provides.Type.SET_VALUES) Set<String> provideA() {
-        throw new AssertionError();
-      }
-    }
-
-    ObjectGraph graph = ObjectGraph.createWith(new TestingLoader(), new TestModule());
-    try {
-      graph.validate();
-      fail();
-    } catch (IllegalStateException expected) {
-    }
-  }
 }

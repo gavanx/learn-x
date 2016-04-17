@@ -15,104 +15,121 @@
  */
 package dagger;
 
-import dagger.internal.TestingLoader;
-import javax.inject.Inject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+
+import javax.inject.Inject;
+
+import dagger.internal.TestingLoader;
 
 import static org.fest.assertions.Assertions.assertThat;
 
 @RunWith(JUnit4.class)
 public final class LazyInjectionTest {
-  @Test public void getLazyDoesNotCauseInjectedTypesToBeLoaded() {
-    @Module(injects = LazyEntryPoint.class)
-    class TestModule {
+    @Test
+    public void getLazyDoesNotCauseInjectedTypesToBeLoaded() {
+        @Module(injects = LazyEntryPoint.class)
+        class TestModule {
+        }
+
+        ObjectGraph.createWith(new TestingLoader(), new TestModule());
+        assertThat(lazyEntryPointLoaded).isFalse();
     }
 
-    ObjectGraph.createWith(new TestingLoader(), new TestModule());
-    assertThat(lazyEntryPointLoaded).isFalse();
-  }
+    private static boolean lazyEntryPointLoaded = false;
 
-  private static boolean lazyEntryPointLoaded = false;
-  static class LazyEntryPoint {
-    static {
-      lazyEntryPointLoaded = true;
-    }
-  }
-
-  @Test public void getLazyDoesNotCauseProvidesParametersToBeLoaded() {
-    @Module
-    class TestModule {
-      @Provides Object provideObject(LazyProvidesParameter parameter) {
-        throw new AssertionError();
-      }
+    static class LazyEntryPoint {
+        static {
+            lazyEntryPointLoaded = true;
+        }
     }
 
-    ObjectGraph.createWith(new TestingLoader(), new TestModule());
-    assertThat(lazyProvidesParameterLoaded).isFalse();
-  }
+    @Test
+    public void getLazyDoesNotCauseProvidesParametersToBeLoaded() {
+        @Module
+        class TestModule {
+            @Provides
+            Object provideObject(LazyProvidesParameter parameter) {
+                throw new AssertionError();
+            }
+        }
 
-  private static boolean lazyProvidesParameterLoaded = false;
-  static class LazyProvidesParameter {
-    static {
-      lazyProvidesParameterLoaded = true;
-    }
-  }
-
-  @Test public void getLazyDoesNotCauseProvidesResultToBeLoaded() {
-    @Module
-    class TestModule {
-      @Provides LazyProvidesResult provideLazy() {
-        throw new AssertionError();
-      }
+        ObjectGraph.createWith(new TestingLoader(), new TestModule());
+        assertThat(lazyProvidesParameterLoaded).isFalse();
     }
 
-    ObjectGraph.createWith(new TestingLoader(), new TestModule());
-    assertThat(lazyProvidesResultLoaded).isFalse();
-  }
+    private static boolean lazyProvidesParameterLoaded = false;
 
-  private static boolean lazyProvidesResultLoaded = false;
-  static class LazyProvidesResult {
-    static {
-      lazyProvidesResultLoaded = true;
-    }
-  }
-
-  @Test public void getLazyDoesNotCauseStaticsToBeLoaded() {
-    @Module(staticInjections = LazyInjectStatics.class)
-    class TestModule {
+    static class LazyProvidesParameter {
+        static {
+            lazyProvidesParameterLoaded = true;
+        }
     }
 
-    ObjectGraph.createWith(new TestingLoader(), new TestModule());
-    assertThat(LazyInjectStaticsLoaded).isFalse();
-  }
+    @Test
+    public void getLazyDoesNotCauseProvidesResultToBeLoaded() {
+        @Module
+        class TestModule {
+            @Provides
+            LazyProvidesResult provideLazy() {
+                throw new AssertionError();
+            }
+        }
 
-  private static boolean LazyInjectStaticsLoaded = false;
-  static class LazyInjectStatics {
-    static {
-      LazyInjectStaticsLoaded = true;
-    }
-  }
-
-  @Test public void lazyInjectionRequiresProvidesMethod() {
-    class TestEntryPoint {
-      @Inject String injected;
+        ObjectGraph.createWith(new TestingLoader(), new TestModule());
+        assertThat(lazyProvidesResultLoaded).isFalse();
     }
 
-    @Module(injects = TestEntryPoint.class)
-    class TestModule {
-      @Provides String provideString(Integer integer) {
-        return integer.toString();
-      }
-      @Provides Integer provideInteger() {
-        return 5;
-      }
+    private static boolean lazyProvidesResultLoaded = false;
+
+    static class LazyProvidesResult {
+        static {
+            lazyProvidesResultLoaded = true;
+        }
     }
 
-    ObjectGraph objectGraph = ObjectGraph.createWith(new TestingLoader(), new TestModule());
-    TestEntryPoint entryPoint = new TestEntryPoint();
-    objectGraph.inject(entryPoint);
-    assertThat(entryPoint.injected).isEqualTo("5");
-  }
+    @Test
+    public void getLazyDoesNotCauseStaticsToBeLoaded() {
+        @Module(staticInjections = LazyInjectStatics.class)
+        class TestModule {
+        }
+
+        ObjectGraph.createWith(new TestingLoader(), new TestModule());
+        assertThat(LazyInjectStaticsLoaded).isFalse();
+    }
+
+    private static boolean LazyInjectStaticsLoaded = false;
+
+    static class LazyInjectStatics {
+        static {
+            LazyInjectStaticsLoaded = true;
+        }
+    }
+
+    @Test
+    public void lazyInjectionRequiresProvidesMethod() {
+        class TestEntryPoint {
+            @Inject
+            String injected;
+        }
+
+        @Module(injects = TestEntryPoint.class)
+        class TestModule {
+            @Provides
+            String provideString(Integer integer) {
+                return integer.toString();
+            }
+
+            @Provides
+            Integer provideInteger() {
+                return 5;
+            }
+        }
+
+        ObjectGraph objectGraph = ObjectGraph.createWith(new TestingLoader(), new TestModule());
+        TestEntryPoint entryPoint = new TestEntryPoint();
+        objectGraph.inject(entryPoint);
+        assertThat(entryPoint.injected).isEqualTo("5");
+    }
 }

@@ -15,76 +15,91 @@
  */
 package dagger;
 
-import dagger.internal.TestingLoader;
-import javax.inject.Inject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+
+import javax.inject.Inject;
+
+import dagger.internal.TestingLoader;
 
 import static org.junit.Assert.fail;
 
 @RunWith(JUnit4.class)
 public final class ProblemDetectorTest {
-  @Test public void atInjectCircularDependenciesDetected() {
-    class TestEntryPoint {
-      @Inject Rock rock;
+    @Test
+    public void atInjectCircularDependenciesDetected() {
+        class TestEntryPoint {
+            @Inject
+            Rock rock;
+        }
+
+        @Module(injects = TestEntryPoint.class)
+        class TestModule {
+        }
+
+        ObjectGraph graph = ObjectGraph.createWith(new TestingLoader(), new TestModule());
+        try {
+            graph.validate();
+            fail();
+        } catch (RuntimeException expected) {
+        }
     }
 
-    @Module(injects = TestEntryPoint.class)
-    class TestModule {
+    @Test
+    public void providesCircularDependenciesDetected() {
+        @Module
+        class TestModule {
+            @Provides
+            Integer provideInteger(String s) {
+                throw new AssertionError();
+            }
+
+            @Provides
+            String provideString(Integer i) {
+                throw new AssertionError();
+            }
+        }
+
+        ObjectGraph graph = ObjectGraph.createWith(new TestingLoader(), new TestModule());
+        try {
+            graph.validate();
+            fail();
+        } catch (RuntimeException expected) {
+        }
     }
 
-    ObjectGraph graph = ObjectGraph.createWith(new TestingLoader(), new TestModule());
-    try {
-      graph.validate();
-      fail();
-    } catch (RuntimeException expected) {
-    }
-  }
+    @Test
+    public void validateLazy() {
+        @Module(library = true)
+        class TestModule {
+            @Provides
+            Integer dependOnLazy(Lazy<String> lazyString) {
+                throw new AssertionError();
+            }
 
-  @Test public void providesCircularDependenciesDetected() {
-    @Module
-    class TestModule {
-      @Provides Integer provideInteger(String s) {
-        throw new AssertionError();
-      }
-      @Provides String provideString(Integer i) {
-        throw new AssertionError();
-      }
-    }
+            @Provides
+            String provideLazyValue() {
+                throw new AssertionError();
+            }
+        }
 
-    ObjectGraph graph = ObjectGraph.createWith(new TestingLoader(), new TestModule());
-    try {
-      graph.validate();
-      fail();
-    } catch (RuntimeException expected) {
-    }
-  }
-
-  @Test public void validateLazy() {
-    @Module(library = true)
-    class TestModule {
-      @Provides Integer dependOnLazy(Lazy<String> lazyString) {
-        throw new AssertionError();
-      }
-      @Provides String provideLazyValue() {
-        throw new AssertionError();
-      }
+        ObjectGraph graph = ObjectGraph.createWith(new TestingLoader(), new TestModule());
+        graph.validate();
     }
 
-    ObjectGraph graph = ObjectGraph.createWith(new TestingLoader(), new TestModule());
-    graph.validate();
-  }
+    static class Rock {
+        @Inject
+        Scissors scissors;
+    }
 
-  static class Rock {
-    @Inject Scissors scissors;
-  }
+    static class Scissors {
+        @Inject
+        Paper paper;
+    }
 
-  static class Scissors {
-    @Inject Paper paper;
-  }
-
-  static class Paper {
-    @Inject Rock rock;
-  }
+    static class Paper {
+        @Inject
+        Rock rock;
+    }
 }

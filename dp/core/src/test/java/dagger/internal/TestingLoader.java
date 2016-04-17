@@ -25,26 +25,27 @@ import dagger.internal.loaders.ReflectiveStaticInjection;
  */
 public final class TestingLoader extends Loader {
 
-  @Override public <T> ModuleAdapter<T> getModuleAdapter(Class<T> type) {
-    ModuleAdapter<T> adapter = TestingModuleAdapter.create(type);
-    return adapter;
-  }
-
-  @Override public Binding<?> getAtInjectBinding(String key, String className, ClassLoader ignored,
-      boolean mustHaveInjections) {
-     try {
-      Class<?> type = getClass().getClassLoader().loadClass(className);
-      if (type.isInterface()) {
-        return null; // Short-circuit since we can't build reflective bindings for interfaces.
-      }
-      return ReflectiveAtInjectBinding.create(type, mustHaveInjections);
-    } catch (ClassNotFoundException e) {
-      throw new TypeNotPresentException(
-          String.format("Could not find %s needed for binding %s", className, key), e);
+    @Override
+    public <T> ModuleAdapter<T> getModuleAdapter(Class<T> type) {
+        ModuleAdapter<T> adapter = TestingModuleAdapter.create(type);
+        return adapter;
     }
-  }
 
-  @Override public StaticInjection getStaticInjection(Class<?> injectedClass) {
-    return ReflectiveStaticInjection.create(injectedClass);
-  }
+    @Override
+    public Binding<?> getAtInjectBinding(String key, String className, ClassLoader ignored, boolean mustHaveInjections) {
+        try {
+            Class<?> type = getClass().getClassLoader().loadClass(className);
+            if (type.isInterface()) {
+                return null; // Short-circuit since we can't build reflective bindings for interfaces.
+            }
+            return ReflectiveAtInjectBinding.create(type, mustHaveInjections);
+        } catch (ClassNotFoundException e) {
+            throw new TypeNotPresentException(String.format("Could not find %s needed for binding %s", className, key), e);
+        }
+    }
+
+    @Override
+    public StaticInjection getStaticInjection(Class<?> injectedClass) {
+        return ReflectiveStaticInjection.create(injectedClass);
+    }
 }

@@ -16,7 +16,10 @@
  */
 package dagger;
 
-import dagger.internal.TestingLoader;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -26,11 +29,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+
+import dagger.internal.TestingLoader;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -39,77 +42,80 @@ import static org.fest.assertions.Assertions.assertThat;
  */
 @RunWith(JUnit4.class)
 public final class ThreadSafetyTest {
-  private static final Integer FIRST_VALUE = 0;
-  private static final int THREAD_COUNT = 100;
+    private static final Integer FIRST_VALUE = 0;
+    private static final int THREAD_COUNT = 100;
 
-  private final ExecutorService es = Executors.newFixedThreadPool(THREAD_COUNT);
-  private final CountDownLatch latch = new CountDownLatch(THREAD_COUNT + 1);
+    private final ExecutorService es = Executors.newFixedThreadPool(THREAD_COUNT);
+    private final CountDownLatch latch = new CountDownLatch(THREAD_COUNT + 1);
 
 
-  static class LazyEntryPoint {
-    @Inject Lazy<Integer> lazy;
-  }
-
-  @Module(injects = { Long.class, LazyEntryPoint.class })
-  static class LatchingModule {
-    private final AtomicInteger count = new AtomicInteger(FIRST_VALUE);
-    private final CountDownLatch latch;
-    LatchingModule(CountDownLatch latch) {
-      this.latch = latch;
+    static class LazyEntryPoint {
+        @Inject
+        Lazy<Integer> lazy;
     }
 
-    @Provides @Singleton Long provideLong() {
-      return Long.valueOf(provideInteger());
-    }
+    @Module(injects = {Long.class, LazyEntryPoint.class})
+    static class LatchingModule {
+        private final AtomicInteger count = new AtomicInteger(FIRST_VALUE);
+        private final CountDownLatch latch;
 
-    @Provides Integer provideInteger() {
-      try {
-        latch.await();
-      } catch (InterruptedException e) {
-        throw new AssertionError("Interrupted Thread!!");
-      }
-      return count.getAndIncrement();
-    }
-  }
-
-  @Test public void concurrentSingletonAccess() throws Exception {
-    final List<Future<Long>> futures = new ArrayList<Future<Long>>();
-    final ObjectGraph graph =
-        ObjectGraph.createWith(new TestingLoader(), new LatchingModule(latch));
-    for (int i = 0; i < THREAD_COUNT; i++) {
-      futures.add(es.submit(new Callable<Long>() {
-        @Override public Long call() {
-          latch.countDown();
-          return graph.get(Long.class);
+        LatchingModule(CountDownLatch latch) {
+            this.latch = latch;
         }
-      }));
-    }
-    latch.countDown();
-    for (Future<Long> future : futures) {
-      assertThat(future.get(1, TimeUnit.SECONDS))
-          .overridingErrorMessage("Lock failure - count should never increment")
-          .isEqualTo(0);
-    }
-  }
 
-  @Test public void concurrentLazyAccess() throws Exception {
-    final List<Future<Integer>> futures = new ArrayList<Future<Integer>>();
-    final ObjectGraph graph =
-        ObjectGraph.createWith(new TestingLoader(), new LatchingModule(latch));
-    final LazyEntryPoint lep = graph.get(LazyEntryPoint.class);
-    for (int i = 0; i < THREAD_COUNT; i++) {
-      futures.add(es.submit(new Callable<Integer>() {
-        @Override public Integer call() {
-          latch.countDown();
-          return lep.lazy.get();
+        @Provides
+        @Singleton
+        Long provideLong() {
+            return Long.valueOf(provideInteger());
         }
-      }));
+
+        @Provides
+        Integer provideInteger() {
+            try {
+                latch.await();
+            } catch (InterruptedException e) {
+                throw new AssertionError("Interrupted Thread!!");
+            }
+            return count.getAndIncrement();
+        }
     }
-    latch.countDown();
-    for (Future<Integer> future : futures) {
-      assertThat(future.get(1, TimeUnit.SECONDS))
-          .overridingErrorMessage("Lock failure - count should never increment")
-          .isEqualTo(0);
+
+    @Test
+    public void concurrentSingletonAccess() throws Exception {
+        final List<Future<Long>> futures = new ArrayList<Future<Long>>();
+        final ObjectGraph graph = ObjectGraph.createWith(new TestingLoader(), new LatchingModule(latch));
+        for (int i = 0; i < THREAD_COUNT; i++) {
+            futures.add(es.submit(new Callable<Long>() {
+                @Override
+                public Long call() {
+                    latch.countDown();
+                    return graph.get(Long.class);
+                }
+            }));
+        }
+        latch.countDown();
+        for (Future<Long> future : futures) {
+            assertThat(future.get(1, TimeUnit.SECONDS)).overridingErrorMessage("Lock failure - count should never increment").isEqualTo(0);
+        }
     }
-  }
+
+    @Test
+    public void concurrentLazyAccess() throws Exception {
+        final List<Future<Integer>> futures = new ArrayList<Future<Integer>>();
+        final ObjectGraph graph = ObjectGraph.createWith(new TestingLoader(), new LatchingModule(latch));
+        final LazyEntryPoint lep = graph.get(LazyEntryPoint.class);
+        for (int i = 0; i < THREAD_COUNT; i++) {
+            futures.add(es.submit(new Callable<Integer>() {
+                @Override
+                public Integer call() {
+                    latch.countDown();
+                    return lep.lazy.get();
+                }
+            }));
+        }
+        latch.countDown();
+        for (Future<Integer> future : futures) {
+            assertThat(future.get(1, TimeUnit.SECONDS)).overridingErrorMessage("Lock failure - count should never increment").isEqualTo(0);
+        }
+    }
 }

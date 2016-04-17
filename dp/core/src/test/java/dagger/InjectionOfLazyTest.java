@@ -16,13 +16,16 @@
  */
 package dagger;
 
-import dagger.internal.TestingLoader;
-import java.util.concurrent.atomic.AtomicInteger;
-import javax.inject.Inject;
-import javax.inject.Provider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+
+import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.inject.Inject;
+import javax.inject.Provider;
+
+import dagger.internal.TestingLoader;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -32,102 +35,116 @@ import static org.junit.Assert.assertNull;
  */
 @RunWith(JUnit4.class)
 public final class InjectionOfLazyTest {
-  @Test public void lazyValueCreation() {
-    final AtomicInteger counter = new AtomicInteger();
-    class TestEntryPoint {
-      @Inject Lazy<Integer> i;
-      @Inject Lazy<Integer> j;
+    @Test
+    public void lazyValueCreation() {
+        final AtomicInteger counter = new AtomicInteger();
+        class TestEntryPoint {
+            @Inject
+            Lazy<Integer> i;
+            @Inject
+            Lazy<Integer> j;
+        }
+
+        @Module(injects = TestEntryPoint.class)
+        class TestModule {
+            @Provides
+            Integer provideInteger() {
+                return counter.incrementAndGet();
+            }
+        }
+
+        TestEntryPoint ep = injectWithModule(new TestEntryPoint(), new TestModule());
+        assertEquals(0, counter.get());
+        assertEquals(1, ep.i.get().intValue());
+        assertEquals(1, counter.get());
+        assertEquals(2, ep.j.get().intValue());
+        assertEquals(1, ep.i.get().intValue());
+        assertEquals(2, counter.get());
     }
 
-    @Module(injects = TestEntryPoint.class)
-    class TestModule {
-      @Provides Integer provideInteger() {
-        return counter.incrementAndGet();
-      }
+    @Test
+    public void lazyNullCreation() {
+        final AtomicInteger provideCounter = new AtomicInteger(0);
+        class TestEntryPoint {
+            @Inject
+            Lazy<String> i;
+        }
+        @Module(injects = TestEntryPoint.class)
+        class TestModule {
+            @Provides
+            String provideInteger() {
+                provideCounter.incrementAndGet();
+                return null;
+            }
+        }
+
+        TestEntryPoint ep = injectWithModule(new TestEntryPoint(), new TestModule());
+        assertEquals(0, provideCounter.get());
+        assertNull(ep.i.get());
+        assertEquals(1, provideCounter.get());
+        assertNull(ep.i.get()); // still null
+        assertEquals(1, provideCounter.get()); // still only called once.
     }
 
-    TestEntryPoint ep = injectWithModule(new TestEntryPoint(), new TestModule());
-    assertEquals(0, counter.get());
-    assertEquals(1, ep.i.get().intValue());
-    assertEquals(1, counter.get());
-    assertEquals(2, ep.j.get().intValue());
-    assertEquals(1, ep.i.get().intValue());
-    assertEquals(2, counter.get());
-  }
+    @Test
+    public void providerOfLazyOfSomething() {
+        final AtomicInteger counter = new AtomicInteger();
+        class TestEntryPoint {
+            @Inject
+            Provider<Lazy<Integer>> providerOfLazyInteger;
+        }
 
-  @Test public void lazyNullCreation() {
-    final AtomicInteger provideCounter = new AtomicInteger(0);
-    class TestEntryPoint {
-      @Inject Lazy<String> i;
-    }
-    @Module(injects = TestEntryPoint.class)
-    class TestModule {
-      @Provides String provideInteger() {
-        provideCounter.incrementAndGet();
-        return null;
-      }
-    }
+        @Module(injects = TestEntryPoint.class)
+        class TestModule {
+            @Provides
+            Integer provideInteger() {
+                return counter.incrementAndGet();
+            }
+        }
 
-    TestEntryPoint ep = injectWithModule(new TestEntryPoint(), new TestModule());
-    assertEquals(0, provideCounter.get());
-    assertNull(ep.i.get());
-    assertEquals(1, provideCounter.get());
-    assertNull(ep.i.get()); // still null
-    assertEquals(1, provideCounter.get()); // still only called once.
-  }
-
-  @Test public void providerOfLazyOfSomething() {
-    final AtomicInteger counter = new AtomicInteger();
-    class TestEntryPoint {
-      @Inject Provider<Lazy<Integer>> providerOfLazyInteger;
+        TestEntryPoint ep = injectWithModule(new TestEntryPoint(), new TestModule());
+        assertEquals(0, counter.get());
+        Lazy<Integer> i = ep.providerOfLazyInteger.get();
+        assertEquals(1, i.get().intValue());
+        assertEquals(1, counter.get());
+        assertEquals(1, i.get().intValue());
+        Lazy<Integer> j = ep.providerOfLazyInteger.get();
+        assertEquals(2, j.get().intValue());
+        assertEquals(2, counter.get());
+        assertEquals(1, i.get().intValue());
     }
 
-    @Module(injects = TestEntryPoint.class)
-    class TestModule {
-      @Provides Integer provideInteger() {
-        return counter.incrementAndGet();
-      }
+    @Test
+    public void sideBySideLazyVsProvider() {
+        final AtomicInteger counter = new AtomicInteger();
+        class TestEntryPoint {
+            @Inject
+            Provider<Integer> providerOfInteger;
+            @Inject
+            Lazy<Integer> lazyInteger;
+        }
+
+        @Module(injects = TestEntryPoint.class)
+        class TestModule {
+            @Provides
+            Integer provideInteger() {
+                return counter.incrementAndGet();
+            }
+        }
+
+        TestEntryPoint ep = injectWithModule(new TestEntryPoint(), new TestModule());
+        assertEquals(0, counter.get());
+        assertEquals(0, counter.get());
+        assertEquals(1, ep.lazyInteger.get().intValue());
+        assertEquals(1, counter.get());
+        assertEquals(2, ep.providerOfInteger.get().intValue()); // fresh instance
+        assertEquals(1, ep.lazyInteger.get().intValue()); // still the same instance
+        assertEquals(2, counter.get());
+        assertEquals(3, ep.providerOfInteger.get().intValue()); // fresh instance
+        assertEquals(1, ep.lazyInteger.get().intValue()); // still the same instance.
     }
 
-    TestEntryPoint ep = injectWithModule(new TestEntryPoint(), new TestModule());
-    assertEquals(0, counter.get());
-    Lazy<Integer> i = ep.providerOfLazyInteger.get();
-    assertEquals(1, i.get().intValue());
-    assertEquals(1, counter.get());
-    assertEquals(1, i.get().intValue());
-    Lazy<Integer> j = ep.providerOfLazyInteger.get();
-    assertEquals(2, j.get().intValue());
-    assertEquals(2, counter.get());
-    assertEquals(1, i.get().intValue());
-  }
-
-  @Test public void sideBySideLazyVsProvider() {
-    final AtomicInteger counter = new AtomicInteger();
-    class TestEntryPoint {
-      @Inject Provider<Integer> providerOfInteger;
-      @Inject Lazy<Integer> lazyInteger;
+    private <T> T injectWithModule(T ep, Object... modules) {
+        return ObjectGraph.createWith(new TestingLoader(), modules).inject(ep);
     }
-
-    @Module(injects = TestEntryPoint.class)
-    class TestModule {
-      @Provides Integer provideInteger() {
-        return counter.incrementAndGet();
-      }
-    }
-
-    TestEntryPoint ep = injectWithModule(new TestEntryPoint(), new TestModule());
-    assertEquals(0, counter.get());
-    assertEquals(0, counter.get());
-    assertEquals(1, ep.lazyInteger.get().intValue());
-    assertEquals(1, counter.get());
-    assertEquals(2, ep.providerOfInteger.get().intValue()); // fresh instance
-    assertEquals(1, ep.lazyInteger.get().intValue()); // still the same instance
-    assertEquals(2, counter.get());
-    assertEquals(3, ep.providerOfInteger.get().intValue()); // fresh instance
-    assertEquals(1, ep.lazyInteger.get().intValue()); // still the same instance.
-  }
-
-  private <T> T injectWithModule(T ep, Object ... modules) {
-    return ObjectGraph.createWith(new TestingLoader(), modules).inject(ep);
-  }
 }

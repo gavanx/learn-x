@@ -16,42 +16,51 @@
  */
 package dagger.internal;
 
-import dagger.Module;
-import dagger.ObjectGraph;
-import dagger.Provides;
-import javax.inject.Inject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import javax.inject.Inject;
+
+import dagger.Module;
+import dagger.ObjectGraph;
+import dagger.Provides;
+
 import static org.fest.assertions.Assertions.assertThat;
 
 /**
- * A test case to deal with fall-back to reflection where the concrete type has been generated
- * but the parent has no {@code @Inject} annotation, and so has not been generated.
+ * A test case to deal with fall-back to reflection where the concrete type has been generated but the parent has no {@code @Inject} annotation, and
+ * so has not been generated.
  */
 @RunWith(JUnit4.class)
 public final class FailoverLoaderTest {
 
-  @Module(injects = EntryPoint.class)
-  static class TestModule {
-    @Provides String aString() { return "a"; }
-  }
-
-  /** A reflective module that will be loaded in place of a generated module for this test. */
-  static final class TestModule$$ModuleAdapter extends TestingModuleAdapter<TestModule> {
-    public TestModule$$ModuleAdapter() {
-      super(TestModule.class, TestModule.class.getAnnotation(Module.class));
+    @Module(injects = EntryPoint.class)
+    static class TestModule {
+        @Provides
+        String aString() {
+            return "a";
+        }
     }
-  }
 
-  static class EntryPoint {
-    @Inject String a;
-  }
+    /**
+     * A reflective module that will be loaded in place of a generated module for this test.
+     */
+    static final class TestModule$$ModuleAdapter extends TestingModuleAdapter<TestModule> {
+        public TestModule$$ModuleAdapter() {
+            super(TestModule.class, TestModule.class.getAnnotation(Module.class));
+        }
+    }
 
-  @Test public void simpleInjectionWithUnGeneratedCode() {
-    EntryPoint entryPoint = new EntryPoint();
-    ObjectGraph.create(new TestModule()).inject(entryPoint);
-    assertThat(entryPoint.a).isEqualTo("a");
-  }
+    static class EntryPoint {
+        @Inject
+        String a;
+    }
+
+    @Test
+    public void simpleInjectionWithUnGeneratedCode() {
+        EntryPoint entryPoint = new EntryPoint();
+        ObjectGraph.create(new TestModule()).inject(entryPoint);
+        assertThat(entryPoint.a).isEqualTo("a");
+    }
 }
