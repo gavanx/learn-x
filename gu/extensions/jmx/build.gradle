@@ -1,0 +1,2 @@
+group = 'com.google.inject.extensions'
+description = 'Google Guice - Extensions - JMX'

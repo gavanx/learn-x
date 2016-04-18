@@ -1,0 +1,20 @@
+
+description = 'Google Guice - Core Library'
+dependencies {
+    compile group: 'javax.inject', name: 'javax.inject', version:'1'
+    compile group: 'aopalliance', name: 'aopalliance', version:'1.0'
+    compile group: 'com.google.guava', name: 'guava', version:'16.0.1'
+    compile group: 'org.ow2.asm', name: 'asm', version:'5.0.3'
+    compile group: 'cglib', name: 'cglib', version:'3.1'
+    testCompile group: 'javax.inject', name: 'javax.inject-tck', version:'1'
+    testCompile group: 'com.google.guava', name: 'guava-testlib', version:'16.0.1'
+    testCompile group: 'org.springframework', name: 'spring-beans', version:'3.0.5.RELEASE'
+    testCompile group: 'biz.aQute', name: 'bnd', version:'0.0.384'
+    testCompile group: 'org.apache.felix', name: 'org.apache.felix.framework', version:'3.0.5'
+}
+
+task packageTests(type: Jar) {
+  from sourceSets.test.output
+  classifier = 'tests'
+}
+artifacts.archives packageTests

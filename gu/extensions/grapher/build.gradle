@@ -1,0 +1,7 @@
+group = 'com.google.inject.extensions'
+description = 'Google Guice - Extensions - Grapher'
+dependencies {
+  compile project(':extensions-parent:guice-assistedinject')
+  compile project(':extensions-parent:guice-multibindings')
+    testCompile group: 'org.easymock', name: 'easymock', version:'3.0'
+}

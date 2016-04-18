@@ -1,0 +1,32 @@
+rootProject.name = 'guice-parent'
+include ':guice-bom'
+include ':guice'
+include ':extensions-parent:guice-assistedinject'
+include ':extensions-parent:guice-dagger-adapter'
+include ':extensions-parent:guice-grapher'
+include ':extensions-parent:guice-jmx'
+include ':extensions-parent:guice-jndi'
+include ':extensions-parent:guice-multibindings'
+include ':extensions-parent:guice-persist'
+include ':extensions-parent:guice-servlet'
+include ':extensions-parent:guice-spring'
+include ':extensions-parent:guice-struts2'
+include ':extensions-parent:guice-testlib'
+include ':extensions-parent:guice-throwingproviders'
+include ':extensions-parent'
+
+project(':guice-bom').projectDir = "$rootDir/bom" as File
+project(':guice').projectDir = "$rootDir/core" as File
+project(':extensions-parent:guice-assistedinject').projectDir = "$rootDir/extensions/assistedinject" as File
+project(':extensions-parent:guice-dagger-adapter').projectDir = "$rootDir/extensions/dagger-adapter" as File
+project(':extensions-parent:guice-grapher').projectDir = "$rootDir/extensions/grapher" as File
+project(':extensions-parent:guice-jmx').projectDir = "$rootDir/extensions/jmx" as File
+project(':extensions-parent:guice-jndi').projectDir = "$rootDir/extensions/jndi" as File
+project(':extensions-parent:guice-multibindings').projectDir = "$rootDir/extensions/multibindings" as File
+project(':extensions-parent:guice-persist').projectDir = "$rootDir/extensions/persist" as File
+project(':extensions-parent:guice-servlet').projectDir = "$rootDir/extensions/servlet" as File
+project(':extensions-parent:guice-spring').projectDir = "$rootDir/extensions/spring" as File
+project(':extensions-parent:guice-struts2').projectDir = "$rootDir/extensions/struts2" as File
+project(':extensions-parent:guice-testlib').projectDir = "$rootDir/extensions/testlib" as File
+project(':extensions-parent:guice-throwingproviders').projectDir = "$rootDir/extensions/throwingproviders" as File
+project(':extensions-parent').projectDir = "$rootDir/extensions" as File

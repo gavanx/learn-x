@@ -1,0 +1,15 @@
+group = 'com.google.inject.extensions'
+description = 'Google Guice - Extensions - Struts2'
+dependencies {
+  compile project(':extensions-parent:guice-servlet')
+    compile(group: 'javax.servlet', name: 'servlet-api', version:'2.5') {
+       /* This dependency was originally in the Maven provided scope, but the project was not of type war.
+       This behavior is not yet supported by Gradle, so this dependency has been converted to a compile dependency.
+       Please review and delete this closure when resolved. */
+    }
+    compile(group: 'org.apache.struts', name: 'struts2-core', version:'2.2.1') {
+       /* This dependency was originally in the Maven provided scope, but the project was not of type war.
+       This behavior is not yet supported by Gradle, so this dependency has been converted to a compile dependency.
+       Please review and delete this closure when resolved. */
+    }
+}

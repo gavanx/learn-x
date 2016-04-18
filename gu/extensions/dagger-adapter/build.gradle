@@ -1,0 +1,6 @@
+group = 'com.google.inject.extensions'
+description = 'Google Guice - Extensions - Dagger Adapter'
+dependencies {
+  compile project(':extensions-parent:guice-multibindings')
+    compile group: 'com.google.dagger', name: 'dagger', version:'2.0'
+}
