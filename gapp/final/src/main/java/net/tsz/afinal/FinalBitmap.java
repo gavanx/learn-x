@@ -73,7 +73,6 @@ public class FinalBitmap {
         return mFinalBitmap;
     }
 
-
     /**
      * 设置图片正在加载的时候显示的图片
      * @param bitmap
@@ -149,7 +148,6 @@ public class FinalBitmap {
         return this;
     }
 
-
     /**
      * 配置磁盘缓存路径
      * @param strPath
@@ -213,9 +211,7 @@ public class FinalBitmap {
      * @return
      */
     private FinalBitmap init() {
-
         if (!mInit) {
-
             BitmapCache.ImageCacheParams imageCacheParams = new BitmapCache.ImageCacheParams(mConfig.cachePath);
             if (mConfig.memCacheSizePercent > 0.05 && mConfig.memCacheSizePercent < 0.8) {
                 imageCacheParams.setMemCacheSizePercent(mContext, mConfig.memCacheSizePercent);

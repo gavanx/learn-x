@@ -25,30 +25,24 @@ import android.widget.AbsListView;
 import java.lang.reflect.Field;
 
 public abstract class FinalActivity extends Activity {
-
-
     public void setContentView(int layoutResID) {
         super.setContentView(layoutResID);
         initInjectedView(this);
     }
-
 
     public void setContentView(View view, LayoutParams params) {
         super.setContentView(view, params);
         initInjectedView(this);
     }
 
-
     public void setContentView(View view) {
         super.setContentView(view);
         initInjectedView(this);
     }
 
-
     public static void initInjectedView(Activity activity) {
         initInjectedView(activity, activity.getWindow().getDecorView());
     }
-
 
     public static void initInjectedView(Object injectedSource, View sourceView) {
         Field[] fields = injectedSource.getClass().getDeclaredFields();
@@ -77,7 +71,6 @@ public abstract class FinalActivity extends Activity {
         }
     }
 
-
     private static void setViewSelectListener(Object injectedSource, Field field, String select, String noSelect) throws Exception {
         Object obj = field.get(injectedSource);
         if (obj instanceof View) {
@@ -85,12 +78,9 @@ public abstract class FinalActivity extends Activity {
         }
     }
 
-
     private static void setListener(Object injectedSource, Field field, String methodName, Method method) throws Exception {
         if (methodName == null || methodName.trim().length() == 0) return;
-
         Object obj = field.get(injectedSource);
-
         switch (method) {
             case Click:
                 if (obj instanceof View) {
@@ -120,5 +110,4 @@ public abstract class FinalActivity extends Activity {
     public enum Method {
         Click, LongClick, ItemClick, itemLongClick
     }
-
 }
